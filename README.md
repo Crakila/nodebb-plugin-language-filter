@@ -48,9 +48,11 @@ Just add a link in (See ACP screenshot) to the thread. It doesn't even have to b
 
 ## Screenshots
 ACP:
+
 <img width="659" height="882" alt="image" src="https://github.com/user-attachments/assets/bad29593-8ccb-4a6e-873f-2fad93265350" />
 
 Front-end:
+
 <img width="1832" height="720" alt="image" src="https://github.com/user-attachments/assets/c8e80bc6-85e4-4f48-95aa-e13063f51963" />
 
 
