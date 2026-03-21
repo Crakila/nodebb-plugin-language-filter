@@ -71,7 +71,7 @@ I am not a developer, and even with the creation of this plugin, I do not claim 
 
 The majority of this plugin was created by Claude Sonnet 4.6 and this README was created entirely by my human hands. 
 
-Since this is the first time that I have used AI to create something, I am not confident in uploading it to NPM, so I am keeping it to GitHub for now. It will be cloned over to [my Codeberg](<https://codeberg.org/Crakila>) if you prefer using that.
+Since this is the first time that I have used AI to create something, I am not confident in uploading it to NPM, so I am keeping it to GitHub for now. It will be cloned over to [my Codeberg](<https://codeberg.org/Crakila/nodebb-plugin-language-filter>) if you prefer using that.
 
 With that in mind, This plugin is using WTFPL for the licence. [NodeBB uses GPLv3](https://github.com/NodeBB/NodeBB/blob/master/LICENSE) - Show them some love <3 
 PR's are welcome and appreciated. 
