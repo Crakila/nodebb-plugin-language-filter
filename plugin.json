@@ -1,0 +1,34 @@
+{
+  "id": "nodebb-plugin-language-filter",
+  "name": "Language Filter",
+  "description": "Blocks non-English and non-Irish posts",
+  "url": "",
+  "library": "./library.js",
+  "version": "1.0.0",
+  "nbbpm": {
+    "compatibility": "^4.0.0"
+  },
+  "hooks": [
+    {
+      "hook": "filter:topic.post",
+      "method": "filterTopicPost"
+    },
+    {
+      "hook": "filter:topic.reply",
+      "method": "filterTopicReply"
+    },
+    {
+      "hook": "filter:admin.header.build",
+      "method": "addAdminNavigation"
+    },
+    {
+      "hook": "static:app.load",
+      "method": "addRoutes"
+    }
+  ],
+  "modules": {
+    "../admin/plugins/language-filter.js": "public/js/admin.js"
+  },
+  "templates": "public/templates"
+}
+
