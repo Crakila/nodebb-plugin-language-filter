@@ -1,7 +1,7 @@
 # Language Filter (`nodebb-plugin-language-filter`)
 
 This plugin allows admins to restrict the ability for Topics and Posts to specific languages.
-This affects all future posts and but not retroactively. This will also affect Fediverse posts. 
+This affects all future posts but not retroactively. This will also affect Fediverse posts. 
 
 ## Install
 
