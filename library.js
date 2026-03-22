@@ -3,12 +3,14 @@
 const franc = require('franc-min');
 const meta = require.main.require('./src/meta');
 
+// Defaults
 const DEFAULTS = {
     allowedLangs: ['eng'],
     minLength: 10,
-    moreInfoUrl: 'https://caint.ie/post/330',
+    moreInfoUrl: '',
 };
 
+// Languages
 const LANGUAGE_LABELS = {
     eng: 'English', gle: 'Irish (Gaeilge)', fra: 'French', deu: 'German',
     spa: 'Spanish', ita: 'Italian', por: 'Portuguese', nld: 'Dutch',
@@ -54,12 +56,11 @@ async function getSettings() {
     }
 }
 
+// Error message that appears on the front-end. 
 function buildBlockedMessage(settings) {
     const siteTitle = (meta.config && meta.config.title) || 'this forum';
     const langList = settings.allowedLangs.map(c => LANGUAGE_LABELS[c] || c).join(' and ');
-    return `Your post appears to be in a language that is not accepted on ${siteTitle}.<br />` +
-        `Only ${langList} are permitted. <br />` +
-        `<a href="${settings.moreInfoUrl}">For more details, click here</a>`;
+    return `Only ${langList} posts are allowed on ${siteTitle}. <a href="${settings.moreInfoUrl}">Why?</a>`;
 }
 
 async function checkLanguage(textContent) {
