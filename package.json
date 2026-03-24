@@ -3,8 +3,14 @@
   "version": "1.0.1",
   "description": "Blocks posts written in languages not permitted by the forum administrator",
   "main": "library.js",
+  "scripts": {
+    "test": "mocha"
+  },
   "dependencies": {
     "franc-min": "^4.0.0"
+  },
+  "devDependencies": {
+    "mocha": "11.7.5"
   },
   "repository": {
     "type": "git",
