@@ -131,11 +131,22 @@ const LanguageFilter = {
         return custom_header;
     },
 
+    checkLanguageApi: async function (req, res) {
+        const text = req.query.text || '';
+        const result = await checkLanguage(text);
+        if (!result.allowed) {
+            res.json({ allowed: false, message: buildBlockedMessage(result.settings) });
+        } else {
+            res.json({ allowed: true });
+        }
+    },
+
     addRoutes: async function ({ router, middleware }) {
         const middlewares = [
             middleware.ensureLoggedIn,
             middleware.admin.checkPrivileges,
         ];
+        router.get('/api/language-filter/check', LanguageFilter.checkLanguageApi);
         router.get('/admin/plugins/language-filter', middleware.admin.buildHeader, LanguageFilter.renderAdminPage);
         router.get('/api/admin/plugins/language-filter', middlewares, LanguageFilter.renderAdminPage);
         router.post('/admin/plugins/language-filter/save', middlewares, LanguageFilter.saveSettings);

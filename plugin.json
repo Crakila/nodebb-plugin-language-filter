@@ -4,7 +4,7 @@
   "description": "Blocks non-English and non-Irish posts",
   "url": "",
   "library": "./library.js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "nbbpm": {
     "compatibility": "^4.0.0"
   },
@@ -25,6 +25,9 @@
       "hook": "static:app.load",
       "method": "addRoutes"
     }
+  ],
+  "scripts": [
+    "public/js/composer.js"
   ],
   "modules": {
     "../admin/plugins/language-filter.js": "public/js/admin.js"
