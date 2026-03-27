@@ -63,13 +63,31 @@ function buildBlockedMessage(settings) {
     return `Only ${langList} posts are allowed on ${siteTitle}. <a href="${settings.moreInfoUrl}">Why?</a>`;
 }
 
+// Script-based detection for languages with distinct Unicode ranges.
+// These are checked before franc to handle short text reliably.
+const SCRIPT_LANGS = [
+    { pattern: /[\u3040-\u309F\u30A0-\u30FF]/, lang: 'jpn' }, // Hiragana/Katakana → Japanese
+    { pattern: /[\uAC00-\uD7AF]/, lang: 'kor' },               // Hangul → Korean
+    { pattern: /[\u0600-\u06FF]/, lang: 'ara' },               // Arabic script
+    { pattern: /[\u0590-\u05FF]/, lang: 'heb' },               // Hebrew script
+    { pattern: /[\u0900-\u097F]/, lang: 'hin' },               // Devanagari → Hindi
+    { pattern: /[\u4E00-\u9FFF\u3400-\u4DBF]/, lang: 'zho' }, // CJK → Chinese (fallback if no kana)
+];
+
+function detectScriptLang(text) {
+    for (const { pattern, lang } of SCRIPT_LANGS) {
+        if (pattern.test(text)) return lang;
+    }
+    return null;
+}
+
 async function checkLanguage(textContent) {
     const settings = await getSettings();
     const cleaned = String(textContent || '').replace(/<[^>]*>/g, '').trim();
     if (cleaned.length < settings.minLength) {
         return { allowed: true };
     }
-    const detectedLang = franc(cleaned);
+    const detectedLang = detectScriptLang(cleaned) || franc(cleaned);
     if (detectedLang === 'und') return { allowed: true };
     return { allowed: settings.allowedLangs.includes(detectedLang), settings };
 }

@@ -15,13 +15,13 @@
 
 		var $warning = $('<div>', {
 			id: WARNING_ID,
-			'class': 'alert alert-warning mb-0',
-			style: 'margin: 4px 12px; padding: 8px 12px; font-size: 13px;',
+			'class': 'alert alert-danger mb-0 text-white',
+			style: 'margin: 4px 12px; padding: 8px 12px; font-size: 15px;',
 		}).html('<i class="fa fa-exclamation-triangle"></i> ' + message);
 
-		var $footer = $('[component="composer/footer"]');
-		if ($footer.length) {
-			$footer.before($warning);
+		var $writePreview = $('[component="composer"] .write-preview-container');
+		if ($writePreview.length) {
+			$writePreview.after($warning);
 		} else {
 			$('[component="composer"]').append($warning);
 		}
