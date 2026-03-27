@@ -4,7 +4,7 @@
   "description": "Blocks non-English and non-Irish posts",
   "url": "",
   "library": "./library.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "nbbpm": {
     "compatibility": "^4.0.0"
   },

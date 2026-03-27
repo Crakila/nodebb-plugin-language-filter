@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-language-filter",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Blocks posts written in languages not permitted by the forum administrator",
   "main": "library.js",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/crakila/nodebb-plugin-language-filter"
+    "url": "git@github.com:Crakila/nodebb-plugin-language-filter.git"
   },
   "author": "Caint.ie",
   "license": "WTFPL"
