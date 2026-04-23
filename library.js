@@ -81,8 +81,8 @@ function detectScriptLang(text) {
     return null;
 }
 
-async function checkLanguage(textContent) {
-    const settings = await getSettings();
+async function checkLanguage(textContent, preloadedSettings) {
+    const settings = preloadedSettings || await getSettings();
     const cleaned = String(textContent || '').replace(/<[^>]*>/g, '').trim();
     if (cleaned.length < settings.minLength) {
         return { allowed: true };
@@ -151,11 +151,16 @@ const LanguageFilter = {
 
     checkLanguageApi: async function (req, res) {
         const text = req.query.text || '';
-        const result = await checkLanguage(text);
+        const settings = await getSettings();
+        const result = await checkLanguage(text, settings);
         if (!result.allowed) {
-            res.json({ allowed: false, message: buildBlockedMessage(result.settings) });
+            res.json({
+                allowed: false,
+                message: buildBlockedMessage(result.settings || settings),
+                minLength: settings.minLength,
+            });
         } else {
-            res.json({ allowed: true });
+            res.json({ allowed: true, minLength: settings.minLength });
         }
     },
 

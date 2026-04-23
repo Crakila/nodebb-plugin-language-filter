@@ -365,3 +365,40 @@ describe('buildBlockedMessage() (via filterTopicPost error)', () => {
         );
     });
 });
+
+describe('checkLanguageApi()', () => {
+    it('returns minLength with allowed responses', async () => {
+        const lib = loadLibrary(makeMetaMock({
+            settingsGet: async () => ({ allowedLangs: JSON.stringify(['eng']), minLength: '42' }),
+        }));
+        let payload;
+        const res = {
+            json(data) {
+                payload = data;
+            },
+        };
+        await lib.checkLanguageApi({ query: { text: 'short' } }, res);
+        assert.deepStrictEqual(payload, { allowed: true, minLength: 42 });
+    });
+
+    it('returns minLength with blocked responses and only fetches settings once', async () => {
+        let callCount = 0;
+        const lib = loadLibrary(makeMetaMock({
+            settingsGet: async () => {
+                callCount++;
+                return { allowedLangs: JSON.stringify(['eng']), minLength: '10', moreInfoUrl: 'https://policy.example.com' };
+            },
+        }));
+        let payload;
+        const res = {
+            json(data) {
+                payload = data;
+            },
+        };
+        await lib.checkLanguageApi({ query: { text: FRENCH } }, res);
+        assert.strictEqual(callCount, 1);
+        assert.strictEqual(payload.allowed, false);
+        assert.strictEqual(payload.minLength, 10);
+        assert.ok(payload.message.includes('https://policy.example.com'));
+    });
+});
