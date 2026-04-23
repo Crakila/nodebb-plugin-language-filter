@@ -3,7 +3,7 @@
 (function () {
 	var debounceTimer = null;
 	var WARNING_ID = 'language-filter-warning';
-	var MIN_LENGTH = 10;
+	var minLength = null;
 	var DEBOUNCE_MS = 750;
 
 	function showWarning(message) {
@@ -34,6 +34,10 @@
 	function checkLanguage(text) {
 		$.get(config.relative_path + '/api/language-filter/check', { text: text })
 			.done(function (res) {
+				if (res && typeof res.minLength === 'number') {
+					minLength = res.minLength;
+				}
+
 				if (res && res.allowed === false) {
 					showWarning(res.message);
 				} else {
@@ -51,7 +55,7 @@
 		$textarea.off('input.langfilter').on('input.langfilter', function () {
 			var text = $(this).val().replace(/<[^>]*>/g, '').trim();
 			clearTimeout(debounceTimer);
-			if (text.length < MIN_LENGTH) {
+			if (minLength !== null && text.length < minLength) {
 				hideWarning();
 				return;
 			}
