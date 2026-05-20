@@ -1,6 +1,6 @@
 'use strict';
 
-const franc = require('franc-min');
+const { franc } = require('franc-min');
 const meta = require.main.require('./src/meta');
 
 // Defaults
