@@ -283,6 +283,49 @@ describe('filterTopicReply()', () => {
     });
 });
 
+describe('ActivityPub inbound posts', () => {
+    let lib;
+    before(() => {
+        lib = loadLibrary(makeMetaMock({
+            settingsGet: async () => ({ allowedLangs: JSON.stringify(['eng']), minLength: '10' }),
+            title: 'Test Forum',
+        }));
+    });
+
+    it('blocks an inbound ActivityPub topic when sourceContent is not allowed', async () => {
+        await assert.rejects(
+            () => lib.filterTopicPost({
+                pid: 'https://remote.example/post/1',
+                title: ENGLISH,
+                sourceContent: FRENCH,
+                _activitypub: { id: 'https://remote.example/post/1', type: 'Note' },
+            }),
+            (err) => err.status === 403
+        );
+    });
+
+    it('blocks an inbound ActivityPub reply when sourceContent is not allowed', async () => {
+        await assert.rejects(
+            () => lib.filterTopicReply({
+                pid: 'https://remote.example/post/2',
+                sourceContent: FRENCH,
+                _activitypub: { id: 'https://remote.example/post/2', type: 'Note' },
+            }),
+            (err) => err.status === 403
+        );
+    });
+
+    it('allows an inbound ActivityPub topic when sourceContent is allowed', async () => {
+        const data = {
+            pid: 'https://remote.example/post/3',
+            sourceContent: ENGLISH,
+            _activitypub: { id: 'https://remote.example/post/3', type: 'Note' },
+        };
+        const result = await lib.filterTopicPost(data);
+        assert.strictEqual(result, data);
+    });
+});
+
 describe('buildBlockedMessage() (via filterTopicPost error)', () => {
     it('uses LANGUAGE_LABELS for known lang codes', async () => {
         const lib = loadLibrary(makeMetaMock({
