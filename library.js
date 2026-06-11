@@ -95,7 +95,7 @@ async function checkLanguage(textContent, preloadedSettings) {
 const LanguageFilter = {
 
     filterTopicPost: async function (data) {
-        const { allowed, settings } = await checkLanguage(data.content || data.title || '');
+        const { allowed, settings } = await checkLanguage(data.content || data.sourceContent || data.title || '');
         if (!allowed) {
             const error = new Error(buildBlockedMessage(settings));
             error.status = 403;
@@ -105,7 +105,7 @@ const LanguageFilter = {
     },
 
     filterTopicReply: async function (data) {
-        const { allowed, settings } = await checkLanguage(data.content || '');
+        const { allowed, settings } = await checkLanguage(data.content || data.sourceContent || '');
         if (!allowed) {
             const error = new Error(buildBlockedMessage(settings));
             error.status = 403;
