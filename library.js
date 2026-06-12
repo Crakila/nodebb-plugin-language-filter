@@ -2,7 +2,9 @@
 
 const francModule = require('franc-min');
 const franc = typeof francModule === 'function' ? francModule : francModule.franc;
+const als = require.main.require('./src/als');
 const meta = require.main.require('./src/meta');
+const privileges = require.main.require('./src/privileges');
 
 // Defaults
 const DEFAULTS = {
@@ -142,6 +144,12 @@ const LanguageFilter = {
     },
 
     addAdminNavigation: async function (custom_header) {
+        const store = als.getStore();
+        const uid = store && store.uid;
+        if (!uid || !await privileges.admin.can('admin:settings', uid)) {
+            return custom_header;
+        }
+
         custom_header.plugins.push({
             route: '/plugins/language-filter',
             icon: 'fa-language',
@@ -171,10 +179,13 @@ const LanguageFilter = {
             middleware.admin.checkPrivileges,
         ];
         router.get('/api/language-filter/check', LanguageFilter.checkLanguageApi);
+        router.get('/plugins/language-filter', middleware.admin.buildHeader, LanguageFilter.renderAdminPage);
         router.get('/admin/plugins/language-filter', middleware.admin.buildHeader, LanguageFilter.renderAdminPage);
         router.get('/api/admin/plugins/language-filter', middlewares, LanguageFilter.renderAdminPage);
         router.post('/admin/plugins/language-filter/save', middlewares, LanguageFilter.saveSettings);
     },
 };
+
+LanguageFilter.init = LanguageFilter.addRoutes;
 
 module.exports = LanguageFilter;
