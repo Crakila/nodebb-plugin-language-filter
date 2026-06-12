@@ -1,6 +1,7 @@
 'use strict';
 
-const { franc } = require('franc-min');
+const francModule = require('franc-min');
+const franc = typeof francModule === 'function' ? francModule : francModule.franc;
 const meta = require.main.require('./src/meta');
 
 // Defaults
@@ -81,8 +82,8 @@ function detectScriptLang(text) {
     return null;
 }
 
-async function checkLanguage(textContent, preloadedSettings) {
-    const settings = preloadedSettings || await getSettings();
+async function checkLanguage(textContent, data, settings = null) {
+    settings = settings || await getSettings();
     const cleaned = String(textContent || '').replace(/<[^>]*>/g, '').trim();
     if (cleaned.length < settings.minLength) {
         return { allowed: true };
@@ -152,7 +153,7 @@ const LanguageFilter = {
     checkLanguageApi: async function (req, res) {
         const text = req.query.text || '';
         const settings = await getSettings();
-        const result = await checkLanguage(text, settings);
+        const result = await checkLanguage(text, null, settings);
         if (!result.allowed) {
             res.json({
                 allowed: false,
