@@ -21,12 +21,29 @@ function makeMetaMock(overrides = {}) {
 
 function loadLibrary(mockMeta) {
     delete require.cache[LIB_PATH];
+    const mockAls = {
+        getStore: () => ({ uid: 1 }),
+    };
+    const mockPrivileges = {
+        admin: {
+            can: async () => true,
+        },
+    };
     const origMain = process.mainModule;
     process.mainModule = {
         filename: '/root/nodebb/app.js',
         paths: Module._nodeModulePaths('/root/nodebb'),
         require(p) {
-            return p === './src/meta' ? mockMeta : require(p);
+            if (p === './src/als') {
+                return mockAls;
+            }
+            if (p === './src/meta') {
+                return mockMeta;
+            }
+            if (p === './src/privileges') {
+                return mockPrivileges;
+            }
+            return require(p);
         },
     };
     const lib = require(LIB_PATH);
