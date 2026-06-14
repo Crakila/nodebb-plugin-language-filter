@@ -74,6 +74,8 @@ const SCRIPT_LANGS = [
     { pattern: /[\u0600-\u06FF]/, lang: 'ara' },               // Arabic script
     { pattern: /[\u0590-\u05FF]/, lang: 'heb' },               // Hebrew script
     { pattern: /[\u0900-\u097F]/, lang: 'hin' },               // Devanagari → Hindi
+    { pattern: /[іІїЇєЄґҐ]/, lang: 'ukr' },                    // Ukrainian-specific Cyrillic
+    { pattern: /[\u0400-\u04FF]/, lang: 'rus' },               // Cyrillic fallback
     { pattern: /[\u4E00-\u9FFF\u3400-\u4DBF]/, lang: 'zho' }, // CJK → Chinese (fallback if no kana)
 ];
 
@@ -98,7 +100,7 @@ async function checkLanguage(textContent, data, settings = null) {
 const LanguageFilter = {
 
     filterTopicPost: async function (data) {
-        const { allowed, settings } = await checkLanguage(data.content || data.sourceContent || data.title || '');
+        const { allowed, settings } = await checkLanguage(data.sourceContent || data.content || data.title || '');
         if (!allowed) {
             const error = new Error(buildBlockedMessage(settings));
             error.status = 403;
@@ -108,7 +110,7 @@ const LanguageFilter = {
     },
 
     filterTopicReply: async function (data) {
-        const { allowed, settings } = await checkLanguage(data.content || data.sourceContent || '');
+        const { allowed, settings } = await checkLanguage(data.sourceContent || data.content || '');
         if (!allowed) {
             const error = new Error(buildBlockedMessage(settings));
             error.status = 403;

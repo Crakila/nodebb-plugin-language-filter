@@ -55,6 +55,8 @@ function loadLibrary(mockMeta) {
 const ENGLISH = 'The quick brown fox jumps over the lazy dog and this is clearly written in the English language.';
 const FRENCH  = 'Bonjour, comment allez-vous? Je suis très content de vous voir aujourd\'hui. La vie est vraiment belle.';
 const GERMAN  = 'Guten Morgen, wie geht es Ihnen heute? Das Wetter ist sehr schön und ich freue mich sehr darüber.';
+const RUSSIAN_WITH_ENGLISH_TAGS = 'Привет всем это русский текст #news #update #community #discussion #english #forum #post #social #activity #technology #sports #music #travel #food #business #marketing #startup #coding #javascript #nodebb #language #filter #moderation #internet #friends #today #world #culture #history #science #education';
+const LINKED_POST = '順番を守れ！ Дотримуйся порядку! 汝、順序と云う名の社会摂理を巡視せよ。 Ви повинні дотримуватися соціального порядку, відомого як порядок.';
 
 // --- Suites ---
 
@@ -156,6 +158,14 @@ describe('checkLanguage() (via filter hooks)', () => {
 
     it('blocks clearly French text when only English is allowed', async () => {
         await assert.rejects(() => lib.filterTopicPost({ content: FRENCH }), { status: 403 });
+    });
+
+    it('blocks Cyrillic text even when English hashtags dominate', async () => {
+        await assert.rejects(() => lib.filterTopicPost({ content: RUSSIAN_WITH_ENGLISH_TAGS }), { status: 403 });
+    });
+
+    it('blocks mixed Japanese/Ukrainian text from the linked spam post', async () => {
+        await assert.rejects(() => lib.filterTopicPost({ content: LINKED_POST }), { status: 403 });
     });
 
     it('allows French text when fra is in allowedLangs', async () => {
@@ -316,6 +326,18 @@ describe('ActivityPub inbound posts', () => {
                 title: ENGLISH,
                 sourceContent: FRENCH,
                 _activitypub: { id: 'https://remote.example/post/1', type: 'Note' },
+            }),
+            (err) => err.status === 403
+        );
+    });
+
+    it('prefers inbound ActivityPub sourceContent over processed content', async () => {
+        await assert.rejects(
+            () => lib.filterTopicPost({
+                pid: 'https://remote.example/post/4',
+                content: ENGLISH,
+                sourceContent: LINKED_POST,
+                _activitypub: { id: 'https://remote.example/post/4', type: 'Note' },
             }),
             (err) => err.status === 403
         );
