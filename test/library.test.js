@@ -193,6 +193,30 @@ describe('checkLanguage() (via filter hooks)', () => {
         assert.ok(result);
     });
 
+    it('ignores Fediverse handles before language detection', async () => {
+        const result = await lib.filterTopicReply({ content: '@stefano@mastodon.bsd.cafe' });
+        assert.ok(result);
+    });
+
+    it('still blocks disallowed text after a Fediverse handle', async () => {
+        await assert.rejects(
+            () => lib.filterTopicReply({ content: `@stefano@mastodon.bsd.cafe ${FRENCH}` }),
+            { status: 403 }
+        );
+    });
+
+    it('ignores local usernames before language detection', async () => {
+        const result = await lib.filterTopicReply({ content: '@john' });
+        assert.ok(result);
+    });
+
+    it('still blocks disallowed text after a local username', async () => {
+        await assert.rejects(
+            () => lib.filterTopicReply({ content: `@john ${FRENCH}` }),
+            { status: 403 }
+        );
+    });
+
     it('handles null content without throwing', async () => {
         const result = await lib.filterTopicPost({ content: null });
         assert.ok(result);

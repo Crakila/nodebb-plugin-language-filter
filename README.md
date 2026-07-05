@@ -75,4 +75,3 @@ It is on NPM now - https://www.npmjs.com/package/nodebb-plugin-language-filter
 
 With that in mind, This plugin is using WTFPL for the licence. [NodeBB uses GPLv3](https://github.com/NodeBB/NodeBB/blob/master/LICENSE) - Show them some love <3 
 PR's are welcome and appreciated. 
-franc is not a function

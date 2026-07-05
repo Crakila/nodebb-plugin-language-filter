@@ -86,9 +86,17 @@ function detectScriptLang(text) {
     return null;
 }
 
+function cleanTextForLanguageDetection(textContent) {
+    return String(textContent || '')
+        .replace(/(^|[^\w@])@[\w.-]+@(?:[\w-]+\.)+[\w-]+\b/g, '$1')
+        .replace(/(^|[^\w@])@[\w.-]+\b/g, '$1')
+        .replace(/<[^>]*>/g, '')
+        .trim();
+}
+
 async function checkLanguage(textContent, data, settings = null) {
     settings = settings || await getSettings();
-    const cleaned = String(textContent || '').replace(/<[^>]*>/g, '').trim();
+    const cleaned = cleanTextForLanguageDetection(textContent);
     if (cleaned.length < settings.minLength) {
         return { allowed: true };
     }
