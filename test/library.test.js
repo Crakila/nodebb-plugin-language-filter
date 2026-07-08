@@ -217,6 +217,23 @@ describe('checkLanguage() (via filter hooks)', () => {
         );
     });
 
+    it('ignores HTTPS links before language detection', async () => {
+        const result = await lib.filterTopicReply({ content: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' });
+        assert.ok(result);
+    });
+
+    it('ignores www links before language detection', async () => {
+        const result = await lib.filterTopicReply({ content: 'www.youtube.com/watch?v=dQw4w9WgXcQ' });
+        assert.ok(result);
+    });
+
+    it('still blocks disallowed text after a link', async () => {
+        await assert.rejects(
+            () => lib.filterTopicReply({ content: `https://www.youtube.com/watch?v=dQw4w9WgXcQ ${FRENCH}` }),
+            { status: 403 }
+        );
+    });
+
     it('handles null content without throwing', async () => {
         const result = await lib.filterTopicPost({ content: null });
         assert.ok(result);

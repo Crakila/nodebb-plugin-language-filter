@@ -40,7 +40,20 @@ The following are the rules set out on [Caint.ie](https://caint.ie) where this p
 > * The language detection is statistical – very short posts that scrape over the minimum character count may occasionally be misidentified.
 > * Mixed language posts will be judged on whichever language dominates the text
 > * Posts where the language genuinely cannot be determined are always let through rather than risk blocking legitimate English content
-> * =NEW AS OF 1.0.6= Topic/Posts incoming from the Fediverse (ActivityPub) will be also be checked. 
+> * Usernames and URL's are ignored.
+
+## Notable Changes since inital release: 
+
+### 1.1.3
+* URL's are ignored from the language filter check.
+
+### 1.1.2 
+* Usernames (including Fediverse handles) are ignored from the language filter check.
+
+### 1.0.6
+* Topic/Posts incoming from the Fediverse (ActivityPub) will be also be checked.
+
+---
 
 There is a 'More Info' section if you wish to post the above rules into a thread or a post and then link it in the error message (See front-end screenshot below) 
 Just add a link in (See ACP screenshot) to the thread. It doesn't even have to be hosted on the same domain. 
@@ -70,8 +83,10 @@ I am not a developer, and even with the creation of this plugin, I do not claim 
 
 The majority of this plugin was created previously by Claude Sonnet 4.6, maintained and updated with ChatGPT 5.5 and this README was created entirely by my human hands. 
 
-~~Since this is the first time that I have used AI to create something, I am not confident in uploading it to NPM, so I am keeping it to GitHub for now. It will be cloned over to [my Codeberg](<https://codeberg.org/Crakila/nodebb-plugin-language-filter>) if you prefer using that.~~
-It is on NPM now - https://www.npmjs.com/package/nodebb-plugin-language-filter
+As of 1.1.0, this plugin is on NPM now - https://www.npmjs.com/package/nodebb-plugin-language-filter
 
-With that in mind, This plugin is using WTFPL for the licence. [NodeBB uses GPLv3](https://github.com/NodeBB/NodeBB/blob/master/LICENSE) - Show them some love <3 
+A clone of this repo is avilable on [my Codeberg](<https://codeberg.org/Crakila/nodebb-plugin-language-filter>)
+
+This plugin is using WTFPL for the licence. [NodeBB uses GPLv3](https://github.com/NodeBB/NodeBB/blob/master/LICENSE) - Show them some love <3 
+
 PR's are welcome and appreciated. 
