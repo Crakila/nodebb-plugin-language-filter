@@ -88,6 +88,7 @@ function detectScriptLang(text) {
 
 function cleanTextForLanguageDetection(textContent) {
     return String(textContent || '')
+        .replace(/(^|[\s(])(?:https?:\/\/|www\.)\S+/gi, '$1')
         .replace(/(^|[^\w@])@[\w.-]+@(?:[\w-]+\.)+[\w-]+\b/g, '$1')
         .replace(/(^|[^\w@])@[\w.-]+\b/g, '$1')
         .replace(/<[^>]*>/g, '')
