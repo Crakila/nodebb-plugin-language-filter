@@ -1,9 +1,11 @@
 # Language Filter (`nodebb-plugin-language-filter`)
 
-_This is one of 3 locations where this plugin is publically available. The other 2 are [Codeberg](https://codeberg.org/Crakila/nodebb-plugin-language-filter) and on [crk.ie](<https://crk.ie/nodebb-plugin-language-filter/>)_
-
 This plugin allows admins to restrict the ability for Topics and Posts to specific languages.
 This affects all future posts but not retroactively. This will also affect Fediverse posts. 
+
+---
+
+The repoistory has been removed from Codeberg due to recent [ToU changes regarding vibe-coded projects.](https://blog.codeberg.org/protecting-our-floss-commons-from-llms.html) - This repo is officially only available on GitHub and NPM.
 
 ## Install
 
