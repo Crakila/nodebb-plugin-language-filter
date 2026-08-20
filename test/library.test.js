@@ -11,6 +11,7 @@ function makeMetaMock(overrides = {}) {
     return {
         settings: {
             get: overrides.settingsGet || (async () => null),
+            set: overrides.settingsSet || (async () => {}),
         },
         config: {
             title: overrides.title !== undefined ? overrides.title : 'Test Forum',
@@ -420,17 +421,12 @@ describe('buildBlockedMessage() (via filterTopicPost error)', () => {
         );
     });
 
-    it('falls back to raw code for unknown lang codes', async () => {
+    it('falls back to default languages for unknown stored lang codes', async () => {
         const lib = loadLibrary(makeMetaMock({
             settingsGet: async () => ({ allowedLangs: JSON.stringify(['xyz']), minLength: '10' }),
         }));
-        await assert.rejects(
-            () => lib.filterTopicPost({ content: ENGLISH }),
-            (err) => {
-                assert.ok(err.message.includes('xyz'), `Expected 'xyz' in: ${err.message}`);
-                return true;
-            }
-        );
+        const result = await lib.filterTopicPost({ content: ENGLISH });
+        assert.ok(result);
     });
 
     it('joins multiple allowed langs with " and "', async () => {
@@ -462,27 +458,27 @@ describe('buildBlockedMessage() (via filterTopicPost error)', () => {
         );
     });
 
-    it('includes moreInfoUrl as an href in the message', async () => {
+    it('includes moreInfoUrl as plain text in the message', async () => {
         const lib = loadLibrary(makeMetaMock({
             settingsGet: async () => ({ allowedLangs: JSON.stringify(['eng']), minLength: '10', moreInfoUrl: 'https://policy.example.com' }),
         }));
         await assert.rejects(
             () => lib.filterTopicPost({ content: FRENCH }),
             (err) => {
-                assert.ok(err.message.includes('href="https://policy.example.com"'), `Expected href in: ${err.message}`);
+                assert.ok(err.message.includes('Why? https://policy.example.com/'), `Expected URL in: ${err.message}`);
                 return true;
             }
         );
     });
 
-    it('renders empty href when moreInfoUrl is not set', async () => {
+    it('omits the more info prompt when moreInfoUrl is not set', async () => {
         const lib = loadLibrary(makeMetaMock({
             settingsGet: async () => ({ allowedLangs: JSON.stringify(['eng']), minLength: '10' }),
         }));
         await assert.rejects(
             () => lib.filterTopicPost({ content: FRENCH }),
             (err) => {
-                assert.ok(err.message.includes('href=""'), `Expected empty href in: ${err.message}`);
+                assert.ok(!err.message.includes('Why?'), `Unexpected more info prompt in: ${err.message}`);
                 return true;
             }
         );
@@ -522,6 +518,64 @@ describe('checkLanguageApi()', () => {
         assert.strictEqual(callCount, 1);
         assert.strictEqual(payload.allowed, false);
         assert.strictEqual(payload.minLength, 10);
-        assert.ok(payload.message.includes('https://policy.example.com'));
+        assert.strictEqual(payload.moreInfoUrl, 'https://policy.example.com/');
+        assert.ok(!payload.message.includes('https://policy.example.com'));
+    });
+});
+
+describe('saveSettings()', () => {
+    function makeResponse() {
+        return {
+            statusCode: 200,
+            status(code) {
+                this.statusCode = code;
+                return this;
+            },
+            json(data) {
+                this.payload = data;
+            },
+        };
+    }
+
+    it('rejects unsupported languages', async () => {
+        const lib = loadLibrary(makeMetaMock());
+        const res = makeResponse();
+        await lib.saveSettings({ body: { allowedLangs: '["eng", "xyz"]', minLength: '10', moreInfoUrl: '' } }, res);
+        assert.strictEqual(res.statusCode, 400);
+        assert.strictEqual(res.payload.success, false);
+    });
+
+    it('rejects malformed language settings and invalid minimum lengths', async () => {
+        const lib = loadLibrary(makeMetaMock());
+        const malformedLanguages = makeResponse();
+        await lib.saveSettings({ body: { allowedLangs: 'not-json', minLength: '10', moreInfoUrl: '' } }, malformedLanguages);
+        assert.strictEqual(malformedLanguages.statusCode, 400);
+
+        const invalidLength = makeResponse();
+        await lib.saveSettings({ body: { allowedLangs: '["eng"]', minLength: '10.5', moreInfoUrl: '' } }, invalidLength);
+        assert.strictEqual(invalidLength.statusCode, 400);
+    });
+
+    it('rejects unsafe more info URLs', async () => {
+        const lib = loadLibrary(makeMetaMock());
+        const res = makeResponse();
+        await lib.saveSettings({ body: { allowedLangs: '["eng"]', minLength: '10', moreInfoUrl: 'javascript:alert(1)' } }, res);
+        assert.strictEqual(res.statusCode, 400);
+        assert.strictEqual(res.payload.success, false);
+    });
+
+    it('uses plain text rather than an HTML link in the blocked-post message', async () => {
+        const lib = loadLibrary(makeMetaMock({
+            settingsGet: async () => ({ allowedLangs: JSON.stringify(['eng']), minLength: '10', moreInfoUrl: 'https://example.com/?q=<script>' }),
+            title: 'Test Forum',
+        }));
+        await assert.rejects(
+            () => lib.filterTopicPost({ content: FRENCH }),
+            (err) => {
+                assert.ok(!err.message.includes('<a '));
+                assert.ok(err.message.includes('https://example.com/?q=%3Cscript%3E'));
+                return true;
+            }
+        );
     });
 });

@@ -6,10 +6,19 @@
 	var minLength = null;
 	var DEBOUNCE_MS = 750;
 
-	function showWarning(message) {
+	function showWarning(message, moreInfoUrl) {
 		var $existing = $('#' + WARNING_ID);
+		var $content = $('<span>').text(message);
+		if (moreInfoUrl) {
+			$content.append(' ').append($('<a>', {
+				href: moreInfoUrl,
+				text: 'Why?',
+				target: '_blank',
+				rel: 'noopener noreferrer',
+			}));
+		}
 		if ($existing.length) {
-			$existing.html(message);
+			$existing.empty().append($('<i>', { 'class': 'fa fa-exclamation-triangle' }), ' ', $content);
 			return;
 		}
 
@@ -17,7 +26,7 @@
 			id: WARNING_ID,
 			'class': 'alert alert-danger mb-0 text-white',
 			style: 'margin: 4px 12px; padding: 8px 12px; font-size: 15px;',
-		}).html('<i class="fa fa-exclamation-triangle"></i> ' + message);
+		}).append($('<i>', { 'class': 'fa fa-exclamation-triangle' }), ' ', $content);
 
 		var $writePreview = $('[component="composer"] .write-preview-container');
 		if ($writePreview.length) {
@@ -39,7 +48,7 @@
 				}
 
 				if (res && res.allowed === false) {
-					showWarning(res.message);
+					showWarning(res.message, res.moreInfoUrl);
 				} else {
 					hideWarning();
 				}
