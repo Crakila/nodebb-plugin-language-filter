@@ -1,10 +1,10 @@
 {
   "id": "nodebb-plugin-language-filter",
   "name": "Language Filter",
-  "description": "Blocks non-English and non-Irish posts",
+  "description": "Blocks posts written in languages not permitted by the forum administrator",
   "url": "",
   "library": "./library.js",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "nbbpm": {
     "compatibility": "^4.0.0"
   },

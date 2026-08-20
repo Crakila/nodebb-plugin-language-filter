@@ -5,7 +5,7 @@ This affects all future posts but not retroactively. This will also affect Fediv
 
 ---
 
-The repoistory has been removed from Codeberg due to recent [ToU changes regarding vibe-coded projects.](https://blog.codeberg.org/protecting-our-floss-commons-from-llms.html) - This repo is officially only available on GitHub and NPM.
+This repository is officially available on GitHub and NPM.
 
 ## Install
 
@@ -45,6 +45,11 @@ The following are the rules set out on [Caint.ie](https://caint.ie) where this p
 > * Usernames and URL's are ignored.
 
 ## Notable Changes since inital release: 
+
+### 1.1.4
+* More Info links are safely rendered as clickable links in the composer warning.
+* Settings are validated server-side to prevent invalid language, length, and URL values.
+* Removed obsolete Codeberg references.
 
 ### 1.1.3
 * URL's are ignored from the language filter check.
@@ -87,8 +92,6 @@ The majority of this plugin was created previously by Claude Sonnet 4.6, maintai
 
 As of 1.1.0, this plugin is on NPM now - https://www.npmjs.com/package/nodebb-plugin-language-filter
 
-A clone of this repo is avilable on [my Codeberg](<https://codeberg.org/Crakila/nodebb-plugin-language-filter>)
-
 This plugin is using WTFPL for the licence. [NodeBB uses GPLv3](https://github.com/NodeBB/NodeBB/blob/master/LICENSE) - Show them some love <3 
 
-PR's are welcome and appreciated. 
+PR's are welcome and appreciated.

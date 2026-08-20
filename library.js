@@ -24,6 +24,9 @@ const LANGUAGE_LABELS = {
     ron: 'Romanian', hun: 'Hungarian', ell: 'Greek', heb: 'Hebrew',
     cat: 'Catalan', slk: 'Slovak',
 };
+const LANGUAGE_CODES = new Set(Object.keys(LANGUAGE_LABELS));
+const MIN_LENGTH_MIN = 1;
+const MIN_LENGTH_MAX = 500;
 
 let settingsCache = null;
 let cacheExpiry = 0;
@@ -42,14 +45,15 @@ async function getSettings() {
         if (stored && stored.allowedLangs) {
             try {
                 const parsed = JSON.parse(stored.allowedLangs);
-                allowedLangs = (Array.isArray(parsed) && parsed.length > 0) ? parsed : DEFAULTS.allowedLangs;
+                allowedLangs = (Array.isArray(parsed) && parsed.length > 0 && parsed.every(code => LANGUAGE_CODES.has(code))) ? parsed : DEFAULTS.allowedLangs;
             } catch (e) { allowedLangs = DEFAULTS.allowedLangs; }
         }
         if (stored && stored.minLength) {
-            minLength = parseInt(stored.minLength, 10) || DEFAULTS.minLength;
+            const parsed = Number(stored.minLength);
+            minLength = Number.isInteger(parsed) && parsed >= MIN_LENGTH_MIN && parsed <= MIN_LENGTH_MAX ? parsed : DEFAULTS.minLength;
         }
         if (stored && stored.moreInfoUrl) {
-            moreInfoUrl = stored.moreInfoUrl;
+            moreInfoUrl = validateMoreInfoUrl(stored.moreInfoUrl);
         }
         settingsCache = { allowedLangs, minLength, moreInfoUrl };
         cacheExpiry = now + CACHE_TTL;
@@ -59,11 +63,22 @@ async function getSettings() {
     }
 }
 
+function validateMoreInfoUrl(value) {
+    const url = String(value || '').trim();
+    if (!url) return '';
+    try {
+        const parsed = new URL(url);
+        return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : '';
+    } catch (e) {
+        return '';
+    }
+}
+
 // Error message that appears on the front-end. 
 function buildBlockedMessage(settings) {
     const siteTitle = (meta.config && meta.config.title) || 'this forum';
     const langList = settings.allowedLangs.map(c => LANGUAGE_LABELS[c] || c).join(' and ');
-    return `Only ${langList} posts are allowed on ${siteTitle}. <a href="${settings.moreInfoUrl}">Why?</a>`;
+    return settings.moreInfoUrl ? `Only ${langList} posts are allowed on ${siteTitle}. Why? ${settings.moreInfoUrl}` : `Only ${langList} posts are allowed on ${siteTitle}.`;
 }
 
 // Script-based detection for languages with distinct Unicode ranges.
@@ -141,10 +156,28 @@ const LanguageFilter = {
 
     saveSettings: async function (req, res) {
         try {
+            let allowedLangs;
+            try {
+                allowedLangs = JSON.parse(req.body.allowedLangs);
+            } catch (e) {
+                return res.status(400).json({ success: false, error: 'Allowed languages must be valid JSON.' });
+            }
+            const minLength = Number(req.body.minLength);
+            const moreInfoUrl = validateMoreInfoUrl(req.body.moreInfoUrl);
+            if (!Array.isArray(allowedLangs) || allowedLangs.length === 0 || !allowedLangs.every(code => LANGUAGE_CODES.has(code))) {
+                return res.status(400).json({ success: false, error: 'Select at least one supported language.' });
+            }
+            const minPostLength = Number(meta.config.minimumPostLength) || 0;
+            if (!Number.isInteger(minLength) || minLength < Math.max(MIN_LENGTH_MIN, minPostLength) || minLength > MIN_LENGTH_MAX) {
+                return res.status(400).json({ success: false, error: `Minimum text length must be between ${Math.max(MIN_LENGTH_MIN, minPostLength)} and ${MIN_LENGTH_MAX}.` });
+            }
+            if (req.body.moreInfoUrl && !moreInfoUrl) {
+                return res.status(400).json({ success: false, error: 'More info URL must use HTTP or HTTPS.' });
+            }
             await meta.settings.set('language-filter', {
-                allowedLangs: req.body.allowedLangs,
-                minLength: req.body.minLength,
-                moreInfoUrl: req.body.moreInfoUrl || DEFAULTS.moreInfoUrl,
+                allowedLangs: JSON.stringify(allowedLangs),
+                minLength,
+                moreInfoUrl,
             });
             settingsCache = null;
             cacheExpiry = 0;
@@ -176,7 +209,8 @@ const LanguageFilter = {
         if (!result.allowed) {
             res.json({
                 allowed: false,
-                message: buildBlockedMessage(result.settings || settings),
+                message: buildBlockedMessage({ ...(result.settings || settings), moreInfoUrl: '' }),
+                moreInfoUrl: settings.moreInfoUrl,
                 minLength: settings.minLength,
             });
         } else {
