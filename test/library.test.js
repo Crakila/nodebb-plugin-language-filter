@@ -458,14 +458,18 @@ describe('buildBlockedMessage() (via filterTopicPost error)', () => {
         );
     });
 
-    it('includes moreInfoUrl as plain text in the message', async () => {
+    it('uses a predictable plain-text more info prompt for the toast enhancer', async () => {
         const lib = loadLibrary(makeMetaMock({
             settingsGet: async () => ({ allowedLangs: JSON.stringify(['eng']), minLength: '10', moreInfoUrl: 'https://policy.example.com' }),
         }));
         await assert.rejects(
             () => lib.filterTopicPost({ content: FRENCH }),
             (err) => {
-                assert.ok(err.message.includes('Why? https://policy.example.com/'), `Expected URL in: ${err.message}`);
+                assert.strictEqual(
+                    err.message,
+                    'Only English posts are allowed on Test Forum. Why? https://policy.example.com/',
+                    `Unexpected blocked-post message: ${err.message}`
+                );
                 return true;
             }
         );

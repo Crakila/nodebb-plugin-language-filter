@@ -5,6 +5,49 @@
 	var WARNING_ID = 'language-filter-warning';
 	var minLength = null;
 	var DEBOUNCE_MS = 750;
+	var BLOCKED_TOAST_TIMEOUT_MS = 30000;
+
+	function extendBlockedToast($toast) {
+		var timeoutId = parseInt($toast.attr('timeoutId'), 10);
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+		}
+		$toast.removeAttr('timeoutId');
+
+		var $progress = $toast.find('.alert-progress');
+		$progress.css('transition-property', 'none').removeClass('animate');
+		setTimeout(function () {
+			$progress.css('transition-property', '');
+			$progress.css('transition', 'width ' + (BLOCKED_TOAST_TIMEOUT_MS + 450) + 'ms linear');
+			$progress.addClass('animate');
+		}, 60);
+
+		$toast.attr('timeoutId', setTimeout(function () {
+			$toast.removeAttr('timeoutId');
+			$toast.alert('close');
+		}, BLOCKED_TOAST_TIMEOUT_MS));
+	}
+
+	function enhanceBlockedToast(data) {
+		if (!data || !data.alert) {
+			return;
+		}
+		var message = String(data.params && data.params.message || '');
+		var match = message.match(/^(Only .+ posts are allowed on .+\.) Why\? (https?:\/\/\S+)$/);
+		if (!match) {
+			return;
+		}
+
+		var $message = data.alert.find('p');
+		$message.empty().append(document.createTextNode(match[1] + ' '), $('<a>', {
+			href: match[2],
+			text: 'Why?',
+			'class': 'link-light text-decoration-underline',
+			target: '_blank',
+			rel: 'noopener noreferrer',
+		}));
+		extendBlockedToast(data.alert);
+	}
 
 	function showWarning(message, moreInfoUrl) {
 		var $existing = $('#' + WARNING_ID);
@@ -76,4 +119,7 @@
 
 	$(window).on('action:composer.loaded', attachToComposer);
 	$(window).on('action:composer.discard action:composer.post.submit', hideWarning);
+	$(window).on('action:alert.new', function (ev, data) {
+		enhanceBlockedToast(data);
+	});
 }());
