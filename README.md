@@ -46,6 +46,9 @@ The following are the rules set out on [Caint.ie](https://caint.ie) where this p
 
 ## Notable Changes since inital release: 
 
+### 1.1.5
+* More Info links are clickable in blocked-post error toasts, which remain visible for 30 seconds.
+
 ### 1.1.4
 * More Info links are safely rendered as clickable links in the composer warning.
 * Settings are validated server-side to prevent invalid language, length, and URL values.
