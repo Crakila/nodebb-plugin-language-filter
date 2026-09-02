@@ -1,7 +1,7 @@
 'use strict';
 
-const francModule = require('franc-min');
-const franc = typeof francModule === 'function' ? francModule : francModule.franc;
+let franc;
+let francPromise;
 const als = require.main.require('./src/als');
 const meta = require.main.require('./src/meta');
 const privileges = require.main.require('./src/privileges');
@@ -33,6 +33,22 @@ let cacheExpiry = 0;
 let settingsPromise = null;
 const CACHE_TTL = 60000;
 const MAX_DETECTION_LENGTH = 10000;
+
+async function getFranc() {
+    if (franc) return franc;
+    if (!francPromise) {
+        francPromise = import('franc-min').then((francModule) => {
+            franc = typeof francModule === 'function' ? francModule : francModule.franc;
+            if (typeof franc !== 'function') {
+                throw new TypeError('franc-min does not export a franc function');
+            }
+            return franc;
+        }).finally(() => {
+            francPromise = null;
+        });
+    }
+    return francPromise;
+}
 
 function defaultSettings() {
     return {
@@ -137,7 +153,7 @@ async function checkLanguage(textContent, data, settings = null) {
     if (cleaned.length < settings.minLength) {
         return { allowed: true };
     }
-    const detectedLang = detectScriptLang(cleaned) || franc(cleaned);
+    const detectedLang = detectScriptLang(cleaned) || (await getFranc())(cleaned);
     if (detectedLang === 'und') return { allowed: true };
     return { allowed: settings.allowedLangs.includes(detectedLang), settings };
 }
