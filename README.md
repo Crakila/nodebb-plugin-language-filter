@@ -1,6 +1,6 @@
 # Language Filter (`nodebb-plugin-language-filter`)
 
-This plugin allows admins to restrict the ability for Topics and Posts to specific languages.
+This plugin allows admins to restrict Topics and Posts to specific languages.
 This affects all future posts but not retroactively. This will also affect Fediverse posts. 
 
 ---
@@ -23,7 +23,7 @@ The following are the rules set out on [Caint.ie](https://caint.ie) where this p
 
 > A post will be ALLOWED if:
 > 
-> * Meets the NodeBB minimium character count (This happens natively)
+> * Meets the configured minimum text length (which should be at least NodeBB's minimum post length)
 > * The language cannot be determined (returns `und`)
 > * The detected language is English (`eng`)
 > * The detected language is Irish (`gle`)
@@ -39,12 +39,16 @@ The following are the rules set out on [Caint.ie](https://caint.ie) where this p
 > 
 > * HTML tags are stripped before detection, so formatting does not affect the result
 > * Detection is based on the post content for replies, and the content or title for new topics
-> * The language detection is statistical – very short posts that scrape over the minimum character count may occasionally be misidentified.
+> * The language detection is statistical – short posts may occasionally be misidentified.
 > * Mixed language posts will be judged on whichever language dominates the text
 > * Posts where the language genuinely cannot be determined are always let through rather than risk blocking legitimate English content
-> * Usernames and URL's are ignored.
+> * Usernames and URLs are ignored.
+> * Detection is capped at the first 10,000 cleaned characters to keep checks bounded.
 
-## Notable Changes since inital release: 
+The default configuration allows English (`eng`) and skips detection for text shorter than 10 characters.
+The script-based checks are heuristic: languages sharing a writing system (for example, Russian and other Cyrillic languages) cannot always be distinguished reliably.
+
+## Notable Changes since initial release:
 
 ### 1.1.5
 * More Info links are clickable in blocked-post error toasts, which remain visible for 30 seconds.

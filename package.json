@@ -4,7 +4,7 @@
   "description": "Blocks posts written in languages not permitted by the forum administrator",
   "main": "library.js",
   "scripts": {
-    "test": "mocha"
+    "test": "node node_modules/mocha/bin/mocha.js"
   },
   "dependencies": {
     "franc-min": "^6.2.0"
@@ -15,6 +15,14 @@
   "repository": {
     "type": "git",
     "url": "git@github.com:Crakila/nodebb-plugin-language-filter.git"
+  },
+  "homepage": "https://github.com/Crakila/nodebb-plugin-language-filter#readme",
+  "bugs": {
+    "url": "https://github.com/Crakila/nodebb-plugin-language-filter/issues"
+  },
+  "keywords": ["nodebb", "nodebb-plugin", "language", "moderation"],
+  "engines": {
+    "node": ">=18.18.0"
   },
   "author": "Caint.ie",
   "license": "WTFPL"
