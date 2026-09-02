@@ -4,6 +4,8 @@
 	var debounceTimer = null;
 	var WARNING_ID = 'language-filter-warning';
 	var minLength = null;
+	var requestSequence = 0;
+	var activeRequest = null;
 	var DEBOUNCE_MS = 750;
 	var BLOCKED_TOAST_TIMEOUT_MS = 30000;
 
@@ -80,12 +82,24 @@
 	}
 
 	function hideWarning() {
+		requestSequence++;
+		if (activeRequest) {
+			activeRequest.abort();
+			activeRequest = null;
+		}
 		$('#' + WARNING_ID).remove();
 	}
 
 	function checkLanguage(text) {
-		$.get(config.relative_path + '/api/language-filter/check', { text: text })
+		var sequence = ++requestSequence;
+		if (activeRequest) {
+			activeRequest.abort();
+		}
+		activeRequest = $.get(config.relative_path + '/api/language-filter/check', { text: text })
 			.done(function (res) {
+				if (sequence !== requestSequence) {
+					return;
+				}
 				if (res && typeof res.minLength === 'number') {
 					minLength = res.minLength;
 				}
@@ -94,6 +108,10 @@
 					showWarning(res.message, res.moreInfoUrl);
 				} else {
 					hideWarning();
+				}
+			}).always(function () {
+				if (sequence === requestSequence) {
+					activeRequest = null;
 				}
 			});
 	}

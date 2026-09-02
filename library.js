@@ -30,37 +30,56 @@ const MIN_LENGTH_MAX = 500;
 
 let settingsCache = null;
 let cacheExpiry = 0;
+let settingsPromise = null;
 const CACHE_TTL = 60000;
+const MAX_DETECTION_LENGTH = 10000;
+
+function defaultSettings() {
+    return {
+        allowedLangs: [...DEFAULTS.allowedLangs],
+        minLength: DEFAULTS.minLength,
+        moreInfoUrl: DEFAULTS.moreInfoUrl,
+    };
+}
 
 async function getSettings() {
     const now = Date.now();
     if (settingsCache && now < cacheExpiry) {
         return settingsCache;
     }
-    try {
-        const stored = await meta.settings.get('language-filter');
-        let allowedLangs = DEFAULTS.allowedLangs;
-        let minLength = DEFAULTS.minLength;
-        let moreInfoUrl = DEFAULTS.moreInfoUrl;
-        if (stored && stored.allowedLangs) {
-            try {
-                const parsed = JSON.parse(stored.allowedLangs);
-                allowedLangs = (Array.isArray(parsed) && parsed.length > 0 && parsed.every(code => LANGUAGE_CODES.has(code))) ? parsed : DEFAULTS.allowedLangs;
-            } catch (e) { allowedLangs = DEFAULTS.allowedLangs; }
+    if (settingsPromise) return settingsPromise;
+    settingsPromise = (async () => {
+        try {
+            const stored = await meta.settings.get('language-filter');
+            let allowedLangs = [...DEFAULTS.allowedLangs];
+            let minLength = DEFAULTS.minLength;
+            let moreInfoUrl = DEFAULTS.moreInfoUrl;
+            if (stored && stored.allowedLangs !== undefined) {
+                try {
+                    const parsed = JSON.parse(stored.allowedLangs);
+                    allowedLangs = (Array.isArray(parsed) && parsed.length > 0 && parsed.every(code => LANGUAGE_CODES.has(code))) ? [...new Set(parsed)] : [...DEFAULTS.allowedLangs];
+                } catch (e) { allowedLangs = [...DEFAULTS.allowedLangs]; }
+            }
+            if (stored && stored.minLength !== undefined) {
+                const parsed = Number(stored.minLength);
+                minLength = Number.isInteger(parsed) && parsed >= MIN_LENGTH_MIN && parsed <= MIN_LENGTH_MAX ? parsed : DEFAULTS.minLength;
+            }
+            if (stored && stored.moreInfoUrl !== undefined) {
+                moreInfoUrl = validateMoreInfoUrl(stored.moreInfoUrl);
+            }
+            settingsCache = { allowedLangs, minLength, moreInfoUrl };
+            cacheExpiry = Date.now() + CACHE_TTL;
+            return settingsCache;
+        } catch (e) {
+            console.error('[language-filter] Failed to load settings:', e.message);
+            settingsCache = defaultSettings();
+            cacheExpiry = Date.now() + CACHE_TTL;
+            return settingsCache;
+        } finally {
+            settingsPromise = null;
         }
-        if (stored && stored.minLength) {
-            const parsed = Number(stored.minLength);
-            minLength = Number.isInteger(parsed) && parsed >= MIN_LENGTH_MIN && parsed <= MIN_LENGTH_MAX ? parsed : DEFAULTS.minLength;
-        }
-        if (stored && stored.moreInfoUrl) {
-            moreInfoUrl = validateMoreInfoUrl(stored.moreInfoUrl);
-        }
-        settingsCache = { allowedLangs, minLength, moreInfoUrl };
-        cacheExpiry = now + CACHE_TTL;
-        return settingsCache;
-    } catch (e) {
-        return DEFAULTS;
-    }
+    })();
+    return settingsPromise;
 }
 
 function validateMoreInfoUrl(value) {
@@ -96,7 +115,9 @@ const SCRIPT_LANGS = [
 
 function detectScriptLang(text) {
     for (const { pattern, lang } of SCRIPT_LANGS) {
-        if (pattern.test(text)) return lang;
+        const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
+        const matches = text.match(new RegExp(pattern.source, flags));
+        if (matches && matches.length >= 2) return lang;
     }
     return null;
 }
@@ -112,7 +133,7 @@ function cleanTextForLanguageDetection(textContent) {
 
 async function checkLanguage(textContent, data, settings = null) {
     settings = settings || await getSettings();
-    const cleaned = cleanTextForLanguageDetection(textContent);
+    const cleaned = cleanTextForLanguageDetection(textContent).slice(0, MAX_DETECTION_LENGTH);
     if (cleaned.length < settings.minLength) {
         return { allowed: true };
     }
@@ -156,14 +177,15 @@ const LanguageFilter = {
 
     saveSettings: async function (req, res) {
         try {
+            const body = req.body || {};
             let allowedLangs;
             try {
-                allowedLangs = JSON.parse(req.body.allowedLangs);
+                allowedLangs = JSON.parse(body.allowedLangs);
             } catch (e) {
                 return res.status(400).json({ success: false, error: 'Allowed languages must be valid JSON.' });
             }
-            const minLength = Number(req.body.minLength);
-            const moreInfoUrl = validateMoreInfoUrl(req.body.moreInfoUrl);
+            const minLength = Number(body.minLength);
+            const moreInfoUrl = validateMoreInfoUrl(body.moreInfoUrl);
             if (!Array.isArray(allowedLangs) || allowedLangs.length === 0 || !allowedLangs.every(code => LANGUAGE_CODES.has(code))) {
                 return res.status(400).json({ success: false, error: 'Select at least one supported language.' });
             }
@@ -171,7 +193,7 @@ const LanguageFilter = {
             if (!Number.isInteger(minLength) || minLength < Math.max(MIN_LENGTH_MIN, minPostLength) || minLength > MIN_LENGTH_MAX) {
                 return res.status(400).json({ success: false, error: `Minimum text length must be between ${Math.max(MIN_LENGTH_MIN, minPostLength)} and ${MIN_LENGTH_MAX}.` });
             }
-            if (req.body.moreInfoUrl && !moreInfoUrl) {
+            if (body.moreInfoUrl && !moreInfoUrl) {
                 return res.status(400).json({ success: false, error: 'More info URL must use HTTP or HTTPS.' });
             }
             await meta.settings.set('language-filter', {
@@ -183,7 +205,8 @@ const LanguageFilter = {
             cacheExpiry = 0;
             res.json({ success: true });
         } catch (e) {
-            res.status(500).json({ success: false, error: e.message });
+            console.error('[language-filter] Failed to save settings:', e.message);
+            res.status(500).json({ success: false, error: 'Unable to save language filter settings.' });
         }
     },
 
@@ -194,6 +217,7 @@ const LanguageFilter = {
             return custom_header;
         }
 
+        custom_header.plugins = custom_header.plugins || [];
         custom_header.plugins.push({
             route: '/plugins/language-filter',
             icon: 'fa-language',
@@ -203,7 +227,7 @@ const LanguageFilter = {
     },
 
     checkLanguageApi: async function (req, res) {
-        const text = req.query.text || '';
+        const text = req.query && typeof req.query.text === 'string' ? req.query.text.slice(0, MAX_DETECTION_LENGTH) : '';
         const settings = await getSettings();
         const result = await checkLanguage(text, null, settings);
         if (!result.allowed) {

@@ -35,7 +35,7 @@
 
                     <div class="mb-3">
                         <h5>More Info URL</h5>
-                        <p>Link shown in the blocked-post error message.</p>
+                        <p>Optional link shown in the blocked-post error message. Leave blank to omit it.</p>
                         <input type="text" class="form-control" id="more-info-url" style="max-width: 480px;" />
                     </div>
 

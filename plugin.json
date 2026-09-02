@@ -30,7 +30,8 @@
     "public/js/composer.js"
   ],
   "modules": {
-    "../admin/plugins/language-filter.js": "public/js/admin.js"
+    "../admin/plugins/language-filter.js": "public/js/admin.js",
+    "../admin/plugins/language-filter-languages.js": "public/js/languages.js"
   },
   "templates": "public/templates"
 }

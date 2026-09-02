@@ -132,6 +132,24 @@ describe('getSettings()', () => {
         await lib.filterTopicPost({ content: ENGLISH });
         assert.strictEqual(callCount, 1);
     });
+
+    it('shares an in-flight settings load between concurrent checks', async () => {
+        let callCount = 0;
+        let resolveSettings;
+        const loading = new Promise(resolve => { resolveSettings = resolve; });
+        const lib = loadLibrary(makeMetaMock({
+            settingsGet: async () => {
+                callCount++;
+                await loading;
+                return { allowedLangs: JSON.stringify(['eng']), minLength: '10' };
+            },
+        }));
+        const first = lib.filterTopicPost({ content: ENGLISH });
+        const second = lib.filterTopicPost({ content: ENGLISH });
+        resolveSettings();
+        await Promise.all([first, second]);
+        assert.strictEqual(callCount, 1);
+    });
 });
 
 describe('checkLanguage() (via filter hooks)', () => {
@@ -564,6 +582,14 @@ describe('saveSettings()', () => {
         const lib = loadLibrary(makeMetaMock());
         const res = makeResponse();
         await lib.saveSettings({ body: { allowedLangs: '["eng"]', minLength: '10', moreInfoUrl: 'javascript:alert(1)' } }, res);
+        assert.strictEqual(res.statusCode, 400);
+        assert.strictEqual(res.payload.success, false);
+    });
+
+    it('handles a missing request body without throwing', async () => {
+        const lib = loadLibrary(makeMetaMock());
+        const res = makeResponse();
+        await lib.saveSettings({}, res);
         assert.strictEqual(res.statusCode, 400);
         assert.strictEqual(res.payload.success, false);
     });
