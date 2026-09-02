@@ -50,6 +50,14 @@ The script-based checks are heuristic: languages sharing a writing system (for e
 
 ## Notable Changes since initial release:
 
+### 1.1.6
+* Improved settings caching and concurrent request handling.
+* Prevented stale composer language-check responses.
+* Added safer request validation and bounded language detection.
+* Made the More Info URL optional and removable.
+* Centralized the supported language metadata.
+* Added automated tests for Node.js 18, 20, and 22.
+
 ### 1.1.5
 * More Info links are clickable in blocked-post error toasts, which remain visible for 30 seconds.
 
