@@ -1,8 +1,9 @@
 name: Publish Node.js Package
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
@@ -18,12 +19,12 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag || github.ref_name }}
     steps:
       - name: Check out release
         uses: actions/checkout@v6
         with:
-          ref: ${{ startsWith(github.event.release.tag_name || inputs.tag, 'v') && (github.event.release.tag_name || inputs.tag) || format('v{0}', github.event.release.tag_name || inputs.tag) }}
+          ref: ${{ startsWith(github.event.release.tag_name || inputs.tag || github.ref_name, 'v') && (github.event.release.tag_name || inputs.tag || github.ref_name) || format('v{0}', github.event.release.tag_name || inputs.tag || github.ref_name) }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
