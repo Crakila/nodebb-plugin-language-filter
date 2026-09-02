@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-language-filter",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Blocks posts written in languages not permitted by the forum administrator",
   "main": "library.js",
   "scripts": {

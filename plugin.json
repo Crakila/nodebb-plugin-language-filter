@@ -4,7 +4,7 @@
   "description": "Blocks posts written in languages not permitted by the forum administrator",
   "url": "",
   "library": "./library.js",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "nbbpm": {
     "compatibility": "^4.0.0"
   },
