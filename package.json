@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-language-filter",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Blocks posts written in languages not permitted by the forum administrator",
   "main": "library.js",
   "scripts": {
@@ -23,6 +23,9 @@
   "keywords": ["nodebb", "nodebb-plugin", "language", "moderation"],
   "engines": {
     "node": ">=18.18.0"
+  },
+  "nbbpm": {
+    "compatibility": "^4.0.0"
   },
   "author": "Caint.ie",
   "license": "WTFPL"

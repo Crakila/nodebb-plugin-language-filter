@@ -50,6 +50,10 @@ The script-based checks are heuristic: languages sharing a writing system (for e
 
 ## Notable Changes since initial release:
 
+### 1.1.7
+* Declared compatibility with NodeBB 4.x in the npm package metadata.
+* Added native language names beside the English names in the ACP language options.
+
 ### 1.1.6
 * Improved settings caching and concurrent request handling.
 * Prevented stale composer language-check responses.
